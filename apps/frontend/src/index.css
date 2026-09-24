@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+
+  /* Primary indigo/purple-blue used for active states, primary buttons,
+     progress indicators, and the floating action button. */
+  --color-primary-50: #f2f1fe;
+  --color-primary-100: #e6e5fd;
+  --color-primary-200: #cdccfc;
+  --color-primary-300: #a9a6f9;
+  --color-primary-400: #8a85f6;
+  --color-primary-500: #6c63ff;
+  --color-primary-600: #5b5fef;
+  --color-primary-700: #4a46c9;
+  --color-primary-800: #3c399f;
+  --color-primary-900: #302e78;
+
+  --color-surface: #ffffff;
+  --color-surface-muted: #f7f7fb;
+  --color-border: #ecebf5;
+
+  --shadow-card: 0 1px 2px rgba(24, 22, 60, 0.04), 0 8px 24px -8px rgba(24, 22, 60, 0.12);
+  --shadow-fab: 0 10px 24px -6px rgba(91, 95, 239, 0.55);
+
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-surface-muted);
+  color: #1a1a2e;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Mobile-first: cap the app to a phone-width column on larger screens,
+   matching a PWA-style layout. */
+#root {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: var(--color-surface-muted);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}

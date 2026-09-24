@@ -1,0 +1,19 @@
+{
+  "name": "plan-it",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=@plan-it/backend",
+    "build:backend": "npm run build --workspace=@plan-it/backend",
+    "build:shared": "npm run build --workspace=@plan-it/shared",
+    "dev:frontend": "npm run dev --workspace=@plan-it/frontend",
+    "build:frontend": "npm run build --workspace=@plan-it/frontend"
+  }
+}
