@@ -64,9 +64,12 @@ export interface GoalMilestone {
 }
 
 export interface GoalDetails {
-  planId: string
+  // planId/status are omitted (redacted) when the goal belongs to a support
+  // crew member who hasn't accepted their invite yet — see PlanDetailPage's
+  // `isPendingInvitee` handling.
+  planId?: string
   description: string | null
-  status: 'active' | 'achieved' | 'abandoned'
+  status: 'active' | 'achieved' | 'abandoned' | null
   milestones: GoalMilestone[]
 }
 

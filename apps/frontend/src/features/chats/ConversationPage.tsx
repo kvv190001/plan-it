@@ -10,6 +10,9 @@ import { useConversations, useMessages, useSendMessage } from './hooks'
 import { Composer } from './components/Composer'
 import { MessageBubble } from './components/MessageBubble'
 
+// Messages more than this many minutes apart get a new timestamp shown above them.
+const MESSAGE_GROUP_GAP_MS = 30 * 60 * 1000
+
 export function ConversationPage() {
   const { conversationId } = useParams<{ conversationId: string }>()
   const { data: currentUser } = useCurrentUser()
@@ -63,9 +66,22 @@ export function ConversationPage() {
 
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
         {isLoading && <p className="text-sm text-gray-400">Loading…</p>}
-        {messages?.map((message) => (
-          <MessageBubble key={message.id} message={message} isMine={message.senderId === currentUser?.id} />
-        ))}
+        {messages?.map((message, index) => {
+          const previous = messages[index - 1]
+          const dayChanged =
+            !previous || new Date(previous.createdAt).toDateString() !== new Date(message.createdAt).toDateString()
+          const showTimestamp =
+            dayChanged ||
+            new Date(message.createdAt).getTime() - new Date(previous.createdAt).getTime() > MESSAGE_GROUP_GAP_MS
+          return (
+            <MessageBubble
+              key={message.id}
+              message={message}
+              isMine={message.senderId === currentUser?.id}
+              showTimestamp={showTimestamp}
+            />
+          )
+        })}
         <div ref={bottomRef} />
       </div>
 

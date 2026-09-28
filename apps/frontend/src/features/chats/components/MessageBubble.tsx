@@ -2,12 +2,26 @@ import { Link } from 'react-router-dom'
 import { Card } from '@/components/ui/Card'
 import { Tag } from '@/components/ui/Tag'
 import { usePlan } from '@/features/plans/hooks'
+import { formatMessageTimestamp } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { Message } from '@/types/api'
 
-export function MessageBubble({ message, isMine }: { message: Message; isMine: boolean }) {
+export function MessageBubble({
+  message,
+  isMine,
+  showTimestamp,
+}: {
+  message: Message
+  isMine: boolean
+  showTimestamp: boolean
+}) {
   return (
     <div className={cn('flex flex-col', isMine ? 'items-end' : 'items-start')}>
+      {showTimestamp && (
+        <div className="mb-2 w-full text-center text-[11px] font-medium text-gray-400">
+          {formatMessageTimestamp(message.createdAt)}
+        </div>
+      )}
       <div
         className={cn(
           'max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm',

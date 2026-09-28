@@ -3,7 +3,6 @@ import type { LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Avatar } from '@/components/ui/Avatar'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { formatRelativeTime } from '@/lib/format'
 import type { ActivityEvent } from '@/types/api'
 import { useActivity } from './hooks'
@@ -40,8 +39,6 @@ export function ActivityPage() {
 
   return (
     <div className="flex flex-col">
-      <PageHeader title="Activity" />
-
       {isLoading && <p className="px-4 py-6 text-sm text-gray-400">Loading…</p>}
 
       {!isLoading && (events?.length ?? 0) === 0 && (

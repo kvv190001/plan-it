@@ -2,7 +2,6 @@ import { useClerk } from '@clerk/react'
 import { LogOut, Settings } from 'lucide-react'
 import { Avatar } from '@/components/ui/Avatar'
 import { Card } from '@/components/ui/Card'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 export function ProfilePage() {
@@ -11,8 +10,6 @@ export function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-4 px-4 py-4">
-      <PageHeader title="Profile" />
-
       <Card className="flex flex-col items-center gap-3 p-6">
         <Avatar src={user?.avatarUrl} name={user?.displayName} size="xl" />
         <p className="text-lg font-semibold text-gray-900">{user?.displayName ?? 'Loading…'}</p>

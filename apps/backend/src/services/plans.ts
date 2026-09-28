@@ -46,13 +46,19 @@ export async function getPlanById(planId: string, currentUserId: string, executo
   const membership = participants.find((p) => p.userId === currentUserId);
   if (!membership) throw new HttpError(403, "Forbidden");
 
-  if (plan.type === "goal" && membership.role === "viewer" && membership.rsvpStatus !== "accepted") {
-    throw new HttpError(403, "Accept the invite to view this goal");
-  }
+  // A support-crew member (viewer role) who hasn't accepted their invite yet
+  // can't see the goal's actual content — but they still need *some* payload
+  // (title + their own pending membership) to render the accept/decline UI.
+  // Previously this threw a 403, which meant the invitee could never load the
+  // page that lets them accept in the first place.
+  const isPendingViewer =
+    plan.type === "goal" && membership.role === "viewer" && membership.rsvpStatus !== "accepted";
 
   let details: unknown;
   let goalStatus: string | undefined;
-  if (plan.type === "date") {
+  if (isPendingViewer) {
+    details = { description: null, status: null, milestones: [] };
+  } else if (plan.type === "date") {
     [details] = await executor.select().from(dateDetails).where(eq(dateDetails.planId, planId));
   } else if (plan.type === "hangout") {
     [details] = await executor.select().from(hangoutDetails).where(eq(hangoutDetails.planId, planId));

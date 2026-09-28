@@ -1,6 +1,5 @@
 import { CalendarHeart } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { formatDayHeading } from '@/lib/format'
 import type { DatePlan, HangoutPlan } from '@/types/api'
 import { PlanCard } from './components/PlanCard'
@@ -22,8 +21,6 @@ export function PlansListPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Plans" />
-
       {isLoading && <p className="px-4 py-6 text-sm text-gray-400">Loading…</p>}
 
       {!isLoading && (plans?.length ?? 0) === 0 && (

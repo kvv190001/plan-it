@@ -2,6 +2,7 @@
 
 @theme {
   --font-sans: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Fredoka", var(--font-sans);
 
   /* Primary indigo/purple-blue used for active states, primary buttons,
      progress indicators, and the floating action button. */
