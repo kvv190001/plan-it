@@ -10,10 +10,14 @@
     "node": ">=20"
   },
   "scripts": {
+    "dev": "concurrently -n backend,webhooks,frontend -c blue,yellow,green \"npm:dev:backend\" \"node scripts/dev-webhooks.mjs\" \"npm:dev:frontend\"",
     "dev:backend": "npm run dev --workspace=@plan-it/backend",
     "build:backend": "npm run build --workspace=@plan-it/backend",
     "build:shared": "npm run build --workspace=@plan-it/shared",
     "dev:frontend": "npm run dev --workspace=@plan-it/frontend",
     "build:frontend": "npm run build --workspace=@plan-it/frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
   }
 }

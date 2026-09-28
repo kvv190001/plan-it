@@ -8,7 +8,7 @@ export function FloatingActionButton({ onClick, className }: { onClick: () => vo
         onClick={onClick}
         aria-label="Create"
         className={cn(
-          'pointer-events-auto absolute right-4 flex size-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-fab transition-transform hover:scale-105 active:scale-95',
+          'pointer-events-auto absolute right-4 bottom-0 flex size-14 items-center justify-center rounded-full bg-primary-600 text-white shadow-fab transition-transform hover:scale-105 active:scale-95',
           className,
         )}
       >

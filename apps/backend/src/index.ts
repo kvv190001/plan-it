@@ -4,6 +4,7 @@ config({ path: ".env.local", override: true }); // .env.local — Clerk keys (gi
 
 import { createServer } from "node:http";
 import { clerkMiddleware } from "@clerk/express";
+import cors from "cors";
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
 import { SHARED_PACKAGE_NAME } from "@plan-it/shared";
@@ -21,6 +22,12 @@ import { createSocketServer } from "./socket/index.js";
 const app = express();
 const httpServer = createServer(app);
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
+
+// The frontend (Vite dev server) runs on a different origin, and the API
+// client sends an Authorization header on every request, so the browser
+// preflights every call. Without this, all fetches fail client-side with a
+// CORS error even though the server responds fine.
+app.use(cors({ origin: process.env.FRONTEND_URL ?? "http://localhost:5173" }));
 
 // Webhook route needs the raw body for Svix signature verification, so it's
 // mounted before express.json() and excluded from clerkMiddleware() (the
