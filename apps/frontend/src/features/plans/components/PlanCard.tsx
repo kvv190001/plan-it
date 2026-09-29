@@ -23,11 +23,11 @@ export function PlanCard({ plan }: { plan: Plan }) {
 
   return (
     <Link to={`/plans/${plan.id}`}>
-      <Card className="flex items-center gap-3 p-4">
+      <Card className="flex items-center gap-4 p-5">
         {plan.type === 'goal' ? (
           <ProgressRing
-            size={48}
-            strokeWidth={5}
+            size={64}
+            strokeWidth={6}
             progress={
               plan.details.milestones.length
                 ? plan.details.milestones.filter((m) => m.isDone).length / plan.details.milestones.length
@@ -35,25 +35,27 @@ export function PlanCard({ plan }: { plan: Plan }) {
             }
           />
         ) : (
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-600">
-            <Icon className="size-5" />
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-600">
+            <Icon className="size-6" />
           </span>
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-gray-900">{plan.title}</p>
+          <p className="truncate text-base font-semibold text-gray-900">{plan.title}</p>
           {plan.type !== 'goal' && (
-            <p className="truncate text-xs text-gray-500">
+            <p className="truncate text-sm text-gray-500">
               {formatDateTime(plan.details.scheduledAt)}
               {plan.details.location ? ` · ${plan.details.location}` : ''}
             </p>
           )}
           {plan.type === 'goal' && plan.details.description && (
-            <p className="truncate text-xs text-gray-500">{plan.details.description}</p>
+            <p className="truncate text-sm text-gray-500">{plan.details.description}</p>
           )}
         </div>
 
-        <Tag tone={statusTone[plan.displayStatus] ?? 'neutral'}>{plan.displayStatus}</Tag>
+        <Tag tone={statusTone[plan.displayStatus] ?? 'neutral'} className="shrink-0 text-sm">
+          {plan.displayStatus}
+        </Tag>
       </Card>
     </Link>
   )

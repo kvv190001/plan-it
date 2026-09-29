@@ -1,8 +1,9 @@
-import { ChevronDown, ChevronLeft, Flag, Heart, MapPin, MessageSquare } from 'lucide-react'
+import { ChevronDown, Flag, Heart, MapPin, MessageSquare } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { BackButton } from '@/components/ui/BackButton'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ProgressRing } from '@/components/ui/ProgressRing'
@@ -129,9 +130,7 @@ export function PlanDetailPage() {
   return (
     <div className="flex flex-col gap-8 px-4 py-4">
       <div className="flex items-center gap-2">
-        <Link to="/plans" className="inline-flex size-9 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100">
-          <ChevronLeft className="size-5" />
-        </Link>
+        <BackButton fallbackTo="/plans" />
         <h1 className="flex-1 truncate text-lg font-semibold text-gray-900">{plan.title}</h1>
         <Tag tone={statusTone[plan.displayStatus] ?? 'neutral'}>{plan.displayStatus}</Tag>
       </div>

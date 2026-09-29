@@ -1,8 +1,8 @@
 import { SOCKET_EVENTS } from '@plan-it/shared'
-import { ChevronLeft } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { Avatar, AvatarStack } from '@/components/ui/Avatar'
+import { BackButton } from '@/components/ui/BackButton'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useUsers } from '@/hooks/useUsers'
 import { useSocketEvent } from '@/lib/socket'
@@ -50,12 +50,7 @@ export function ConversationPage() {
   return (
     <div className="flex h-full flex-col">
       <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-surface-muted/95 px-2 py-3 backdrop-blur">
-        <Link
-          to="/chats"
-          className="inline-flex size-9 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-        >
-          <ChevronLeft className="size-5" />
-        </Link>
+        <BackButton fallbackTo="/chats" />
         {otherUsers.length > 1 ? (
           <AvatarStack users={otherUsers.map((u) => ({ id: u.id, name: u.displayName, avatarUrl: u.avatarUrl }))} max={3} />
         ) : (

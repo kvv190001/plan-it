@@ -13,7 +13,7 @@ import { useConversations } from './hooks'
 const MAX_ACTIVE_PLANS = 5
 
 function sortableTime(plan: Plan) {
-  if (plan.type === 'goal') return plan.startDate ? new Date(plan.startDate).getTime() : Number.POSITIVE_INFINITY
+  if (plan.type === 'goal') return plan.endDate ? new Date(plan.endDate).getTime() : Number.POSITIVE_INFINITY
   return new Date(plan.details.scheduledAt).getTime()
 }
 
@@ -53,7 +53,11 @@ export function ChatsListPage() {
       {activePlans.length > 0 && (
         <section className="pt-4">
           <h2 className="px-4 mb-2 text-sm font-semibold text-gray-500">Active Plans</h2>
-          <div className="flex gap-3 overflow-x-auto px-4 pb-1 snap-x">
+          {/* overflow-x-auto forces the browser to also compute overflow-y as
+              auto, which clips each card's box-shadow at the scroll
+              container's edge — the extra vertical padding gives the shadow
+              room to render instead of getting cut off in a hard line. */}
+          <div className="flex gap-3 overflow-x-auto px-4 pt-1 pb-4 snap-x">
             {activePlans.map((plan) => (
               <ActivePlanCard key={plan.id} plan={plan} currentUserId={currentUser?.id} />
             ))}
