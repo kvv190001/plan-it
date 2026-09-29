@@ -54,3 +54,14 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* Desktop browsers render a reserved-space scrollbar inside the scrollable
+   content column, which looks out of place for a phone-width app shell.
+   Scrolling still works — only the (redundant, since the app is scrolled by
+   touch/trackpad, not a visible desktop scrollbar) visual track is hidden. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

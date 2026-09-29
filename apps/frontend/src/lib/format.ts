@@ -90,3 +90,45 @@ export function formatGoalTargetDate(iso: string): string {
   const datePart = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
   return `Target ${datePart}`
 }
+
+// Plain date label for the goal detail page subtitle, e.g. "Oct 12, 2024".
+export function formatDateLabel(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+// Countdown to a goal's target date, in whichever unit reads best given how
+// far away it is — used for the "Weeks Left" style stat on the goal detail
+// page. Returns null when the goal has no target date.
+export function formatTimeLeft(endDateIso: string | null): { value: string; unit: string } | null {
+  if (!endDateIso) return null
+  const diffMs = new Date(endDateIso).getTime() - Date.now()
+  if (diffMs <= 0) return { value: '0', unit: 'Days Left' }
+
+  const hours = diffMs / (1000 * 60 * 60)
+  if (hours < 24) return { value: String(Math.ceil(hours)), unit: 'Hours Left' }
+
+  const days = hours / 24
+  if (days < 14) return { value: String(Math.ceil(days)), unit: 'Days Left' }
+
+  const weeks = days / 7
+  if (weeks < 8) return { value: String(Math.ceil(weeks)), unit: 'Weeks Left' }
+
+  const months = days / 30
+  return { value: String(Math.ceil(months)), unit: 'Months Left' }
+}
+
+// How recently a goal's milestones were last touched — a lightweight
+// "momentum" signal that doesn't require tracking real day-over-day streaks.
+export function formatLastProgress(milestones: { completedAt: string | null }[]): string {
+  const latest = milestones
+    .map((m) => m.completedAt)
+    .filter((d): d is string => d !== null)
+    .sort()
+    .at(-1)
+  if (!latest) return 'No progress yet'
+
+  const diffDays = Math.floor((Date.now() - new Date(latest).getTime()) / (1000 * 60 * 60 * 24))
+  if (diffDays <= 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  return `${diffDays}d ago`
+}

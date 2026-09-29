@@ -199,7 +199,7 @@ export const activityEvents = pgTable(
     actorId: uuid("actor_id")
       .notNull()
       .references(() => users.id), // who performed the action
-    type: text("type").notNull(), // 'plan_created' | 'plan_confirmed' | 'plan_cancelled' | 'milestone_completed' | 'comment_posted' | ...
+    type: text("type").notNull(), // 'plan_created' | 'plan_confirmed' | 'plan_cancelled' | 'milestone_completed' | 'goal_achieved' | 'comment_posted' | ...
     planId: uuid("plan_id").references(() => plans.id),
     payload: jsonb("payload"), // small denormalized snapshot for rendering without extra joins
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

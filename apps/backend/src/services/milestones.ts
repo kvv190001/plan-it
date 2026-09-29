@@ -3,7 +3,7 @@ import { and, eq, sql } from "drizzle-orm";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 import type { z } from "zod";
 import { db } from "../db/client.js";
-import { goalMilestones, planParticipants, plans } from "../db/schema.js";
+import { goalDetails, goalMilestones, planParticipants, plans } from "../db/schema.js";
 import { HttpError } from "../lib/httpError.js";
 import { recordActivityEvent } from "./activityEvents.js";
 import { getPlanById } from "./plans.js";
@@ -36,6 +36,13 @@ export async function addMilestone(
     }
 
     await tx.insert(goalMilestones).values({ planId, title: input.title, position });
+
+    // A new, unfinished milestone means the goal is no longer 100% done —
+    // reopen it if it had auto-achieved (see updateMilestone).
+    await tx
+      .update(goalDetails)
+      .set({ status: "active" })
+      .where(and(eq(goalDetails.planId, planId), eq(goalDetails.status, "achieved")));
 
     return getPlanById(planId, currentUserId, tx);
   });
@@ -70,7 +77,8 @@ export async function updateMilestone(
       .where(eq(goalMilestones.id, milestoneId));
 
     let recipientIds: string[] = [];
-    if (justCompleted) {
+    const loadSupportCrew = async () => {
+      if (recipientIds.length > 0) return recipientIds;
       const supportCrew = await tx
         .select({ userId: planParticipants.userId })
         .from(planParticipants)
@@ -81,13 +89,45 @@ export async function updateMilestone(
           ),
         );
       recipientIds = supportCrew.map((p) => p.userId);
+      return recipientIds;
+    };
+
+    if (justCompleted) {
       await recordActivityEvent(tx, {
-        recipientIds,
+        recipientIds: await loadSupportCrew(),
         actorId: currentUserId,
         type: "milestone_completed",
         planId,
         payload: { planTitle: plan.title, milestoneTitle: input.title ?? milestone.title },
       });
+    }
+
+    // Auto-advance the goal's own status alongside its milestones, so a goal
+    // that's 100% complete stops showing up as "active" (e.g. in the Active
+    // Plans rail) without the owner having to remember a separate manual
+    // "mark achieved" step. Un-checking a milestone on an already-achieved
+    // goal reverts it back to active for the same reason — the milestones
+    // are the source of truth for progress.
+    if (input.isDone !== undefined) {
+      const [goal] = await tx.select().from(goalDetails).where(eq(goalDetails.planId, planId));
+      const allMilestones = await tx
+        .select()
+        .from(goalMilestones)
+        .where(eq(goalMilestones.planId, planId));
+      const allDone = allMilestones.length > 0 && allMilestones.every((m) => m.isDone);
+
+      if (allDone && goal?.status === "active") {
+        await tx.update(goalDetails).set({ status: "achieved" }).where(eq(goalDetails.planId, planId));
+        await recordActivityEvent(tx, {
+          recipientIds: await loadSupportCrew(),
+          actorId: currentUserId,
+          type: "goal_achieved",
+          planId,
+          payload: { planTitle: plan.title },
+        });
+      } else if (input.isDone === false && goal?.status === "achieved") {
+        await tx.update(goalDetails).set({ status: "active" }).where(eq(goalDetails.planId, planId));
+      }
     }
 
     const updatedPlan = await getPlanById(planId, currentUserId, tx);

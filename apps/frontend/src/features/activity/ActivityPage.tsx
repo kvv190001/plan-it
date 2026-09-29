@@ -12,6 +12,7 @@ const icons: Record<string, LucideIcon> = {
   plan_confirmed: CheckCircle2,
   plan_cancelled: XCircle,
   milestone_completed: CheckCircle2,
+  goal_achieved: CheckCircle2,
   comment_posted: MessageSquare,
 }
 
@@ -27,6 +28,8 @@ function describe(event: ActivityEvent): string {
       return `"${payload.title ?? 'A plan'}" was cancelled`
     case 'milestone_completed':
       return `${actor} completed a milestone`
+    case 'goal_achieved':
+      return `"${payload.planTitle ?? 'A goal'}" was achieved`
     case 'comment_posted':
       return `${actor} commented on "${payload.planTitle ?? 'a goal'}"`
     default:

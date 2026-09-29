@@ -15,7 +15,7 @@ export function AppShell() {
   return (
     <div className="flex min-h-dvh flex-1 flex-col">
       {isTopLevel && <AppHeader />}
-      <div className="flex-1 overflow-y-auto pb-4">
+      <div className="flex-1 overflow-y-auto pb-4 no-scrollbar">
         <Outlet />
       </div>
       {isTopLevel && <FloatingActionButton onClick={() => setCreateOpen(true)} />}
