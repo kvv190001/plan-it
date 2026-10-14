@@ -38,7 +38,8 @@ app.use(express.json());
 app.use(clerkMiddleware());
 
 app.get("/health", (_req, res) => {
-  res.json({ status: "ok", shared: SHARED_PACKAGE_NAME });
+  res.set("Cache-Control", "no-store");
+  res.json({ status: "ok", shared: SHARED_PACKAGE_NAME, uptime: process.uptime() });
 });
 
 app.use(meRouter);

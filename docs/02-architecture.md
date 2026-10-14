@@ -50,6 +50,16 @@ the free tier or want more control, swapping the backend host (e.g. to
 AWS ECS Fargate or Azure Container Apps, per the original plan) doesn't
 require touching Postgres/Redis.
 
+**UptimeRobot monitor (free-tier workaround):** Create an HTTP(s) monitor
+that sends `GET https://<backend-host>/health` every 5 minutes. Treat HTTP
+`200` as up and optionally require the response body to contain
+`"status":"ok"`. The endpoint disables caching and includes process uptime,
+so every check reaches the running backend. Enable downtime alerts in
+UptimeRobot. This keeps the Render process active while the monitor runs,
+but does not guarantee production availability or keep Neon warm because
+the health endpoint deliberately avoids database work. Recheck Render's
+current free-tier terms before enabling synthetic keep-alive traffic.
+
 **Why not Vercel for the backend:** Vercel added WebSocket support in
 public beta, but connections are force-closed at a hard **800-second
 (~13 min) max duration** even on paid plans, and the underlying API
