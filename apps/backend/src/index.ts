@@ -12,8 +12,10 @@ import { HttpError } from "./lib/httpError.js";
 import { activityRouter } from "./routes/activity.js";
 import { commentsRouter } from "./routes/comments.js";
 import { conversationsRouter } from "./routes/conversations.js";
+import { friendsRouter } from "./routes/friends.js";
 import { meRouter } from "./routes/me.js";
 import { milestonesRouter } from "./routes/milestones.js";
+import { notificationsRouter } from "./routes/notifications.js";
 import { plansRouter } from "./routes/plans.js";
 import { usersRouter } from "./routes/users.js";
 import { webhooksRouter } from "./routes/webhooks.js";
@@ -44,11 +46,13 @@ app.get("/health", (_req, res) => {
 
 app.use(meRouter);
 app.use(usersRouter);
+app.use(friendsRouter);
 app.use(plansRouter);
 app.use(milestonesRouter);
 app.use(commentsRouter);
 app.use(conversationsRouter);
 app.use(activityRouter);
+app.use(notificationsRouter);
 
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof HttpError) {

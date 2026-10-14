@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useMatch } from 'react-router-dom'
 import { CreateFlow } from '@/components/create/CreateFlow'
+import { useNotificationSummary } from '@/features/notifications/hooks'
 import { AppHeader } from './AppHeader'
 import { BottomTabBar } from './BottomTabBar'
 import { FloatingActionButton } from './FloatingActionButton'
@@ -11,6 +12,12 @@ import { FloatingActionButton } from './FloatingActionButton'
 export function AppShell() {
   const [createOpen, setCreateOpen] = useState(false)
   const isTopLevel = useMatch('/:tab')
+  const { data: summary } = useNotificationSummary()
+  const hasNotifications = !!summary && Object.values(summary).some((n) => n > 0)
+
+  useEffect(() => {
+    document.title = hasNotifications ? '• Plan It' : 'Plan It'
+  }, [hasNotifications])
 
   return (
     <div className="flex min-h-dvh flex-1 flex-col">

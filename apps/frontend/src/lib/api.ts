@@ -5,7 +5,9 @@ import type {
   ActivityEvent,
   Comment,
   Conversation,
+  FriendRequests,
   Message,
+  NotificationSummary,
   Plan,
   PlanWithParticipants,
   PublicUser,
@@ -65,10 +67,17 @@ export function createApiClient(getToken: GetToken) {
         ? Promise.resolve([] as PublicUser[])
         : get<{ users: PublicUser[] }>(`/users${qs({ ids: ids.join(',') })}`).then((r) => r.users),
 
-    searchUsers: (query: string) =>
-      query.trim().length === 0
-        ? Promise.resolve([] as PublicUser[])
-        : get<{ users: PublicUser[] }>(`/users${qs({ q: query })}`).then((r) => r.users),
+    friends: {
+      list: () => get<{ friends: PublicUser[] }>('/friends').then((r) => r.friends),
+      code: () => get<{ friendCode: string }>('/friends/code'),
+      regenerateCode: () => post<{ friendCode: string }>('/friends/code/regenerate'),
+      requests: () => get<FriendRequests>('/friends/requests'),
+      sendRequest: (friendCode: string) =>
+        post<{ status: 'pending' | 'accepted' }>('/friends/requests', { friendCode }),
+      accept: (id: string) => post<{ status: string }>(`/friends/requests/${id}/accept`),
+      decline: (id: string) => post<{ status: string }>(`/friends/requests/${id}/decline`),
+      remove: (userId: string) => del<void>(`/friends/${userId}`),
+    },
 
     conversations: {
       list: () => get<{ conversations: Conversation[] }>('/conversations').then((r) => r.conversations),
@@ -80,6 +89,11 @@ export function createApiClient(getToken: GetToken) {
         ),
       sendMessage: (conversationId: string, input: { content: string; planId?: string }) =>
         post<{ message: Message }>(`/conversations/${conversationId}/messages`, input).then((r) => r.message),
+      markRead: (conversationId: string) => post<void>(`/conversations/${conversationId}/read`),
+    },
+
+    notifications: {
+      summary: () => get<{ summary: NotificationSummary }>('/notifications/summary').then((r) => r.summary),
     },
 
     plans: {
@@ -113,6 +127,7 @@ export function createApiClient(getToken: GetToken) {
     activity: {
       list: (params?: { before?: Date; limit?: number }) =>
         get<{ events: ActivityEvent[] }>(`/activity${qs(params)}`).then((r) => r.events),
+      markSeen: () => post<void>('/activity/seen'),
     },
   }
 }

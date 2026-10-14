@@ -2,6 +2,8 @@ import { MessageCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Avatar, AvatarStack } from '@/components/ui/Avatar'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { NotificationDot } from '@/components/ui/NotificationDot'
+import { cn } from '@/lib/utils'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useUsers } from '@/hooks/useUsers'
 import { usePlans } from '@/features/plans/hooks'
@@ -81,6 +83,7 @@ export function ChatsListPage() {
             .filter((id) => id !== currentUser?.id)
             .map((id) => byId.get(id))
             .filter((u): u is NonNullable<typeof u> => !!u)
+          const unread = conversation.unreadCount > 0
 
           return (
             <li key={conversation.id}>
@@ -94,15 +97,18 @@ export function ChatsListPage() {
                   <p className="truncate text-sm font-semibold text-gray-900">
                     {conversationLabel(conversation, currentUser?.id, namesById)}
                   </p>
-                  <p className="truncate text-sm text-gray-500">
+                  <p className={cn('truncate text-sm', unread ? 'font-semibold text-gray-900' : 'text-gray-500')}>
                     {conversation.lastMessage?.content ?? 'No messages yet'}
                   </p>
                 </div>
-                {conversation.lastMessage && (
-                  <span className="shrink-0 text-xs text-gray-400">
-                    {formatRelativeTime(conversation.lastMessage.createdAt)}
-                  </span>
-                )}
+                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                  {conversation.lastMessage && (
+                    <span className={cn('text-xs', unread ? 'font-semibold text-primary-600' : 'text-gray-400')}>
+                      {formatRelativeTime(conversation.lastMessage.createdAt)}
+                    </span>
+                  )}
+                  {unread && <NotificationDot />}
+                </div>
               </Link>
             </li>
           )

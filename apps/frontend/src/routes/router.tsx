@@ -6,6 +6,7 @@ import { SignInPage } from '@/features/auth/SignInPage'
 import { SignUpPage } from '@/features/auth/SignUpPage'
 import { ChatsListPage } from '@/features/chats/ChatsListPage'
 import { ConversationPage } from '@/features/chats/ConversationPage'
+import { FriendsPage } from '@/features/friends/FriendsPage'
 import { PlanDetailPage } from '@/features/plans/PlanDetailPage'
 import { PlansListPage } from '@/features/plans/PlansListPage'
 import { ProfilePage } from '@/features/profile/ProfilePage'
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
       { path: 'chats/:conversationId', element: <ConversationPage /> },
       { path: 'plans', element: <PlansListPage /> },
       { path: 'plans/:planId', element: <PlanDetailPage /> },
+      { path: 'friends', element: <FriendsPage /> },
       { path: 'activity', element: <ActivityPage /> },
       { path: 'profile', element: <ProfilePage /> },
       { path: '*', element: <Navigate to="/chats" replace /> },

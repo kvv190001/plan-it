@@ -45,6 +45,10 @@ avoids building UI against guesses.
   activity feed, goal support-crew view (progress ring, milestone list,
   comment feed — matching the reference screenshot's layout).
 
+## Phase 5b — Friends
+- Friend codes, friend requests, friends-only chats and plans, Friends tab.
+  See `docs/07-friends.md`.
+
 ## Phase 6 — Polish
 - Web Push notifications (PWA).
 - Server-side daily/summary rollups (non-AI) over `activity_events`.

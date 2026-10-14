@@ -9,6 +9,17 @@ export interface PublicUser {
   avatarUrl: string | null
 }
 
+export interface FriendRequest {
+  id: string
+  createdAt: string
+  user: PublicUser
+}
+
+export interface FriendRequests {
+  incoming: FriendRequest[]
+  outgoing: FriendRequest[]
+}
+
 export interface Conversation {
   id: string
   type: 'direct' | 'group'
@@ -21,6 +32,14 @@ export interface Conversation {
     senderId: string
     createdAt: string
   } | null
+  unreadCount: number
+}
+
+export interface NotificationSummary {
+  chats: number
+  friends: number
+  plans: number
+  activity: number
 }
 
 export interface Message {

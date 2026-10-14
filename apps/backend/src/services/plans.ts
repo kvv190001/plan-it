@@ -17,6 +17,7 @@ import {
   plans,
 } from "../db/schema.js";
 import { HttpError } from "../lib/httpError.js";
+import { assertFriends } from "./friends.js";
 import { recordActivityEvent } from "./activityEvents.js";
 
 // Loose enough to accept both the top-level `db` and a `db.transaction()` callback's `tx`.
@@ -153,6 +154,10 @@ export async function listPlans(
 }
 
 export async function createPlan(currentUserId: string, input: CreatePlanInput) {
+  await assertFriends(
+    currentUserId,
+    input.type === "date" ? [input.inviteeId] : input.type === "hangout" ? input.inviteeIds : input.viewerIds,
+  );
   return db.transaction(async (tx) => {
     const [plan] = await tx
       .insert(plans)
@@ -349,6 +354,7 @@ export async function cancelPlan(currentUserId: string, planId: string) {
 }
 
 export async function inviteParticipant(currentUserId: string, planId: string, targetUserId: string) {
+  await assertFriends(currentUserId, [targetUserId]);
   return db.transaction(async (tx) => {
     const plan = await loadOwnedPlan(planId, currentUserId, tx);
     if (plan.type === "date") {

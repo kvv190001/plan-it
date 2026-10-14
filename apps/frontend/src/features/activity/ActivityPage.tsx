@@ -1,8 +1,10 @@
-import { Activity as ActivityIcon, CalendarHeart, CheckCircle2, MessageSquare, XCircle } from 'lucide-react'
+import { Activity as ActivityIcon, CalendarHeart, CheckCircle2, MessageSquare, UserPlus, XCircle } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar } from '@/components/ui/Avatar'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { useMarkActivitySeen } from '@/features/notifications/hooks'
 import { formatRelativeTime } from '@/lib/format'
 import type { ActivityEvent } from '@/types/api'
 import { useActivity } from './hooks'
@@ -14,6 +16,8 @@ const icons: Record<string, LucideIcon> = {
   milestone_completed: CheckCircle2,
   goal_achieved: CheckCircle2,
   comment_posted: MessageSquare,
+  friend_request_received: UserPlus,
+  friend_request_accepted: UserPlus,
 }
 
 function describe(event: ActivityEvent): string {
@@ -32,6 +36,10 @@ function describe(event: ActivityEvent): string {
       return `"${payload.planTitle ?? 'A goal'}" was achieved`
     case 'comment_posted':
       return `${actor} commented on "${payload.planTitle ?? 'a goal'}"`
+    case 'friend_request_received':
+      return `${actor} sent you a friend request`
+    case 'friend_request_accepted':
+      return `${actor} accepted your friend request`
     default:
       return `${actor} did something`
   }
@@ -39,6 +47,12 @@ function describe(event: ActivityEvent): string {
 
 export function ActivityPage() {
   const { data: events, isLoading } = useActivity()
+  const { mutate: markSeen } = useMarkActivitySeen()
+  const eventCount = events?.length
+
+  useEffect(() => {
+    if (eventCount !== undefined) markSeen()
+  }, [eventCount, markSeen])
 
   return (
     <div className="flex flex-col">

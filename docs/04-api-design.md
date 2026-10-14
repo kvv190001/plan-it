@@ -21,7 +21,21 @@ in sync.
 ```
 GET  /me                        current user profile
 GET  /users/:id                 public profile
+GET  /users?ids=a,b,c           batched public profiles (no name search)
 ```
+
+### Friends (see docs/07-friends.md)
+```
+GET    /friends                          accepted friends
+GET    /friends/code                     current user's friend code
+POST   /friends/code/regenerate          new code, old one stops working
+GET    /friends/requests                 { incoming, outgoing }
+POST   /friends/requests                 send request { friendCode } (auto-accepts a reverse pending request)
+POST   /friends/requests/:id/accept      accept an incoming request
+POST   /friends/requests/:id/decline     decline incoming / cancel outgoing
+DELETE /friends/:userId                  unfriend
+```
+Conversations and plans can only be created with / invite accepted friends (403 otherwise).
 
 ### Conversations & messages
 ```
@@ -99,6 +113,12 @@ server -> clients: plan:rsvp_updated { planId, userId, status }
 server -> clients: plan:status_changed { planId, status }  (proposed -> confirmed -> completed/cancelled)
 server -> clients: plan:milestone_completed { planId, milestoneId }   (goal support crew)
 server -> clients: plan:comment_posted { planId, comment } (goal support crew)
+```
+
+```
+server -> clients: friend:request_received { userId }   (sent to user:<addresseeId> room)
+server -> clients: friend:request_accepted { userId }
+server -> clients: friend:removed          { userId }   (unfriend, decline or cancel)
 ```
 
 These are all server-initiated (no client-emitted equivalent) — plan

@@ -1,7 +1,8 @@
 import { Search, X } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Avatar } from '@/components/ui/Avatar'
-import { useSearchUsers } from '@/hooks/useUsers'
+import { useFriends } from '@/features/friends/hooks'
 import type { PublicUser } from '@/types/api'
 
 interface UserPickerProps {
@@ -11,12 +12,16 @@ interface UserPickerProps {
   placeholder?: string
 }
 
-// Name search is the only way to find another user in the MVP (no
-// contacts/friends list) — see GET /users?q= added alongside this UI.
-export function UserPicker({ selected, onChange, multiple = true, placeholder = 'Search by name…' }: UserPickerProps) {
+const MAX_RESULTS = 5
+
+// Only friends can be picked — chats and plans are friends-only (see
+// docs/07-friends.md). The list is filtered client-side by name.
+export function UserPicker({ selected, onChange, multiple = true, placeholder = 'Search friends…' }: UserPickerProps) {
   const [query, setQuery] = useState('')
-  const { data: results, isFetching } = useSearchUsers(query)
+  const { data: friends, isLoading } = useFriends()
   const selectedIds = new Set(selected.map((u) => u.id))
+  const q = query.trim().toLowerCase()
+  const results = q ? (friends ?? []).filter((f) => f.displayName.toLowerCase().includes(q)).slice(0, MAX_RESULTS) : []
 
   function toggle(user: PublicUser) {
     if (selectedIds.has(user.id)) {
@@ -38,7 +43,7 @@ export function UserPicker({ selected, onChange, multiple = true, placeholder = 
             >
               <Avatar src={u.avatarUrl} name={u.displayName} size="xs" />
               {u.displayName}
-              <button onClick={() => toggle(u)} aria-label={`Remove ${u.displayName}`}>
+              <button type="button" onClick={() => toggle(u)} aria-label={`Remove ${u.displayName}`}>
                 <X className="size-3.5" />
               </button>
             </span>
@@ -46,34 +51,43 @@ export function UserPicker({ selected, onChange, multiple = true, placeholder = 
         </div>
       )}
 
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
-          className="w-full rounded-xl border border-border bg-surface-muted py-2.5 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary-200"
-        />
-      </div>
+      {!isLoading && (friends?.length ?? 0) === 0 ? (
+        <p className="rounded-xl border border-border p-3 text-sm text-gray-500">
+          You need friends first.{' '}
+          <Link to="/friends" className="font-medium text-primary-600">
+            Add friends
+          </Link>
+        </p>
+      ) : (
+        <>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-gray-400" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={placeholder}
+              className="w-full rounded-xl border border-border bg-surface-muted py-2.5 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary-200"
+            />
+          </div>
 
-      {query.trim().length > 0 && (
-        <div className="max-h-48 overflow-y-auto rounded-xl border border-border">
-          {isFetching && <p className="p-3 text-sm text-gray-400">Searching…</p>}
-          {!isFetching && (results?.length ?? 0) === 0 && (
-            <p className="p-3 text-sm text-gray-400">No one found</p>
-          )}
-          {results?.map((user) => (
-            <button
-              key={user.id}
-              onClick={() => toggle(user)}
-              className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-surface-muted"
-            >
-              <Avatar src={user.avatarUrl} name={user.displayName} size="sm" />
-              <span className="text-sm font-medium text-gray-800">{user.displayName}</span>
-              {selectedIds.has(user.id) && <span className="ml-auto text-xs text-primary-600">Selected</span>}
-            </button>
-          ))}
-        </div>
+          <div className="rounded-xl border border-border">
+            {isLoading && <p className="p-3 text-sm text-gray-400">Loading…</p>}
+            {!isLoading && !q && <p className="p-3 text-sm text-gray-400">Type a name to find friends</p>}
+            {!isLoading && q && results.length === 0 && <p className="p-3 text-sm text-gray-400">No friends match</p>}
+            {results.map((user) => (
+              <button
+                type="button"
+                key={user.id}
+                onClick={() => toggle(user)}
+                className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-surface-muted"
+              >
+                <Avatar src={user.avatarUrl} name={user.displayName} size="sm" />
+                <span className="text-sm font-medium text-gray-800">{user.displayName}</span>
+                {selectedIds.has(user.id) && <span className="ml-auto text-xs text-primary-600">Selected</span>}
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

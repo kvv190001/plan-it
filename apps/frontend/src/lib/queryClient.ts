@@ -1,6 +1,13 @@
-import { QueryClient } from '@tanstack/react-query'
+import { MutationCache, QueryClient } from '@tanstack/react-query'
 
-export const queryClient = new QueryClient({
+// Any successful mutation (RSVP, accepting a friend request, ...) can change
+// the tab-bar notification dots, so refresh the summary globally.
+export const queryClient: QueryClient = new QueryClient({
+  mutationCache: new MutationCache({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    },
+  }),
   defaultOptions: {
     queries: {
       staleTime: 30_000,

@@ -46,6 +46,14 @@ conversationsRouter.get(
 );
 
 conversationsRouter.post(
+  "/conversations/:id/read",
+  asyncHandler(async (req, res) => {
+    await conversationsService.markConversationRead(req.currentUser!.id, req.params.id);
+    res.status(204).end();
+  }),
+);
+
+conversationsRouter.post(
   "/conversations/:id/messages",
   asyncHandler(async (req, res) => {
     const parsed = sendMessageSchema.safeParse(req.body);

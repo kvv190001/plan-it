@@ -14,29 +14,52 @@ export function RealtimeSync() {
     appendMessageToCache(queryClient, message.conversationId, message)
   })
 
+  const refreshNotifications = () => queryClient.invalidateQueries({ queryKey: ['notifications'] })
+
   useSocketEvent(SOCKET_EVENTS.PLAN_INVITED, () => {
     queryClient.invalidateQueries({ queryKey: ['plans', 'list'] })
+    queryClient.invalidateQueries({ queryKey: ['activity'] })
+    refreshNotifications()
   })
 
   useSocketEvent<{ planId: string }>(SOCKET_EVENTS.PLAN_RSVP_UPDATED, ({ planId }) => {
     queryClient.invalidateQueries({ queryKey: ['plans', 'detail', planId] })
     queryClient.invalidateQueries({ queryKey: ['plans', 'list'] })
+    refreshNotifications()
   })
 
   useSocketEvent<{ planId: string }>(SOCKET_EVENTS.PLAN_STATUS_CHANGED, ({ planId }) => {
     queryClient.invalidateQueries({ queryKey: ['plans', 'detail', planId] })
     queryClient.invalidateQueries({ queryKey: ['plans', 'list'] })
+    queryClient.invalidateQueries({ queryKey: ['activity'] })
+    refreshNotifications()
   })
 
   useSocketEvent<{ planId: string }>(SOCKET_EVENTS.PLAN_MILESTONE_COMPLETED, ({ planId }) => {
     queryClient.invalidateQueries({ queryKey: ['plans', 'detail', planId] })
     queryClient.invalidateQueries({ queryKey: ['activity'] })
+    refreshNotifications()
   })
 
   useSocketEvent<{ planId: string }>(SOCKET_EVENTS.PLAN_COMMENT_POSTED, ({ planId }) => {
     queryClient.invalidateQueries({ queryKey: ['plans', 'comments', planId] })
     queryClient.invalidateQueries({ queryKey: ['activity'] })
+    refreshNotifications()
   })
+
+  const refreshFriends = () => {
+    queryClient.invalidateQueries({ queryKey: ['friends'] })
+    refreshNotifications()
+  }
+  useSocketEvent(SOCKET_EVENTS.FRIEND_REQUEST_RECEIVED, () => {
+    refreshFriends()
+    queryClient.invalidateQueries({ queryKey: ['activity'] })
+  })
+  useSocketEvent(SOCKET_EVENTS.FRIEND_REQUEST_ACCEPTED, () => {
+    refreshFriends()
+    queryClient.invalidateQueries({ queryKey: ['activity'] })
+  })
+  useSocketEvent(SOCKET_EVENTS.FRIEND_REMOVED, refreshFriends)
 
   return null
 }

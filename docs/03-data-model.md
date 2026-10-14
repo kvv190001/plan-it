@@ -16,11 +16,28 @@ id              uuid PK
 clerk_user_id   text UNIQUE NOT NULL   -- Clerk's user id
 display_name    text NOT NULL
 avatar_url      text
+friend_code     text UNIQUE NOT NULL   -- shareable 8-char code, regenerable
 created_at      timestamptz NOT NULL DEFAULT now()
 ```
 
 Populate/update this table via a Clerk webhook (`user.created`,
 `user.updated`) rather than trusting the frontend to sync it.
+
+## Friends
+
+### `friendships`
+See `docs/07-friends.md`. One row per pair of users (unique on
+`least(requester_id, addressee_id), greatest(...)`); declined/cancelled
+requests and unfriending delete the row.
+
+```
+id             uuid PK
+requester_id   uuid FK -> users.id NOT NULL
+addressee_id   uuid FK -> users.id NOT NULL
+status         text NOT NULL          -- 'pending' | 'accepted'
+created_at     timestamptz NOT NULL DEFAULT now()
+responded_at   timestamptz
+```
 
 ## Messaging
 

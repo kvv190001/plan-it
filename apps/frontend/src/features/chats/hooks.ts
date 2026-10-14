@@ -58,4 +58,5 @@ export function appendMessageToCache(
     prev ? [...prev.filter((m) => m.id !== message.id), message] : [message],
   )
   queryClient.invalidateQueries({ queryKey: ['conversations', 'list'] })
+  queryClient.invalidateQueries({ queryKey: ['notifications'] })
 }

@@ -1,9 +1,10 @@
 import type { createConversationSchema, listMessagesQuerySchema, sendMessageSchema } from "@plan-it/shared";
-import { and, desc, eq, inArray, lt } from "drizzle-orm";
+import { and, count, desc, eq, gt, inArray, lt, ne } from "drizzle-orm";
 import type { z } from "zod";
 import { db } from "../db/client.js";
 import { conversationParticipants, conversations, messages } from "../db/schema.js";
 import { HttpError } from "../lib/httpError.js";
+import { areFriends, assertFriends } from "./friends.js";
 
 export async function createConversation(
   currentUserId: string,
@@ -13,6 +14,8 @@ export async function createConversation(
   if (input.type === "direct" && participantIds.length !== 2) {
     throw new HttpError(400, "A direct conversation needs exactly one other participant");
   }
+
+  await assertFriends(currentUserId, participantIds);
 
   return db.transaction(async (tx) => {
     if (input.type === "direct") {
@@ -64,11 +67,40 @@ export async function getUserConversationIds(userId: string): Promise<string[]> 
 // Enriches each conversation with its participant ids (so the client can
 // resolve the "other person"/group members via GET /users?ids=) and a
 // preview of the most recent message, batched to avoid N+1 queries.
+export async function getUnreadCounts(currentUserId: string): Promise<Map<string, number>> {
+  const rows = await db
+    .select({ conversationId: messages.conversationId, unread: count() })
+    .from(messages)
+    .innerJoin(
+      conversationParticipants,
+      and(
+        eq(conversationParticipants.conversationId, messages.conversationId),
+        eq(conversationParticipants.userId, currentUserId),
+      ),
+    )
+    .where(and(ne(messages.senderId, currentUserId), gt(messages.createdAt, conversationParticipants.lastReadAt)))
+    .groupBy(messages.conversationId);
+  return new Map(rows.map((row) => [row.conversationId, row.unread]));
+}
+
+export async function markConversationRead(currentUserId: string, conversationId: string) {
+  await requireMembership(conversationId, currentUserId);
+  await db
+    .update(conversationParticipants)
+    .set({ lastReadAt: new Date() })
+    .where(
+      and(
+        eq(conversationParticipants.conversationId, conversationId),
+        eq(conversationParticipants.userId, currentUserId),
+      ),
+    );
+}
+
 export async function listConversations(currentUserId: string) {
   const conversationIds = await getUserConversationIds(currentUserId);
   if (conversationIds.length === 0) return [];
 
-  const [rows, participantRows, lastMessageRows] = await Promise.all([
+  const [rows, participantRows, lastMessageRows, unreadCounts] = await Promise.all([
     db.select().from(conversations).where(inArray(conversations.id, conversationIds)),
     db
       .select({ conversationId: conversationParticipants.conversationId, userId: conversationParticipants.userId })
@@ -84,6 +116,7 @@ export async function listConversations(currentUserId: string) {
       .from(messages)
       .where(inArray(messages.conversationId, conversationIds))
       .orderBy(messages.conversationId, desc(messages.createdAt)),
+    getUnreadCounts(currentUserId),
   ]);
 
   const participantsByConversation = new Map<string, string[]>();
@@ -99,6 +132,7 @@ export async function listConversations(currentUserId: string) {
       ...conversation,
       participantIds: participantsByConversation.get(conversation.id) ?? [],
       lastMessage: lastMessageByConversation.get(conversation.id) ?? null,
+      unreadCount: unreadCounts.get(conversation.id) ?? 0,
     }))
     .sort((a, b) => {
       const aTime = a.lastMessage?.createdAt ?? a.createdAt;
@@ -146,6 +180,22 @@ export async function sendMessage(
   input: z.infer<typeof sendMessageSchema>,
 ) {
   await requireMembership(conversationId, currentUserId);
+
+  const [conversation] = await db.select().from(conversations).where(eq(conversations.id, conversationId));
+  if (conversation?.type === "direct") {
+    const [other] = await db
+      .select({ userId: conversationParticipants.userId })
+      .from(conversationParticipants)
+      .where(
+        and(
+          eq(conversationParticipants.conversationId, conversationId),
+          ne(conversationParticipants.userId, currentUserId),
+        ),
+      );
+    if (other && !(await areFriends(currentUserId, other.userId))) {
+      throw new HttpError(403, "You can only message friends");
+    }
+  }
 
   const [message] = await db
     .insert(messages)

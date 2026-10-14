@@ -1,0 +1,2 @@
+ALTER TABLE "conversation_participants" ADD COLUMN "last_read_at" timestamp with time zone DEFAULT now() NOT NULL;--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN "activity_seen_at" timestamp with time zone DEFAULT now() NOT NULL;

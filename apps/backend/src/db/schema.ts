@@ -8,8 +8,20 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { randomInt } from "node:crypto";
+
+// Unambiguous alphabet (no 0/O/1/I/L) so codes are easy to read out or type.
+// Defined here (not in lib/) because drizzle-kit can't resolve ".js" imports.
+const FRIEND_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+export function generateFriendCode() {
+  let code = "";
+  for (let i = 0; i < 8; i++) code += FRIEND_CODE_ALPHABET[randomInt(FRIEND_CODE_ALPHABET.length)];
+  return code;
+}
 
 // See docs/03-data-model.md for the full data model this mirrors.
 
@@ -22,8 +34,38 @@ export const users = pgTable("users", {
   clerkUserId: text("clerk_user_id").notNull().unique(),
   displayName: text("display_name").notNull(),
   avatarUrl: text("avatar_url"),
+  friendCode: text("friend_code").notNull().unique().$defaultFn(generateFriendCode),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  activitySeenAt: timestamp("activity_seen_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// ---------------------------------------------------------------------------
+// Friends (see docs/07-friends.md)
+// ---------------------------------------------------------------------------
+
+export const friendships = pgTable(
+  "friendships",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    requesterId: uuid("requester_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    addresseeId: uuid("addressee_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: text("status").notNull(), // 'pending' | 'accepted'
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    respondedAt: timestamp("responded_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("friendships_pair_unique").on(
+      sql`least(${table.requesterId}, ${table.addresseeId})`,
+      sql`greatest(${table.requesterId}, ${table.addresseeId})`,
+    ),
+    index("friendships_requester_idx").on(table.requesterId),
+    index("friendships_addressee_idx").on(table.addresseeId),
+  ],
+);
 
 // ---------------------------------------------------------------------------
 // Messaging
@@ -46,6 +88,7 @@ export const conversationParticipants = pgTable(
       .notNull()
       .references(() => users.id),
     joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+    lastReadAt: timestamp("last_read_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [primaryKey({ columns: [table.conversationId, table.userId] })],
 );

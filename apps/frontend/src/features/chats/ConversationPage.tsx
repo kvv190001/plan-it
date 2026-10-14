@@ -6,6 +6,8 @@ import { BackButton } from '@/components/ui/BackButton'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useUsers } from '@/hooks/useUsers'
 import { useSocketEvent } from '@/lib/socket'
+import { useFriends } from '@/features/friends/hooks'
+import { useMarkConversationRead } from '@/features/notifications/hooks'
 import { useConversations, useMessages, useSendMessage } from './hooks'
 import { Composer } from './components/Composer'
 import { MessageBubble } from './components/MessageBubble'
@@ -19,6 +21,7 @@ export function ConversationPage() {
   const { data: conversations } = useConversations()
   const { data: messages, isLoading } = useMessages(conversationId)
   const sendMessage = useSendMessage(conversationId!)
+  const { data: friends } = useFriends()
   const bottomRef = useRef<HTMLDivElement>(null)
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set())
 
@@ -44,6 +47,19 @@ export function ConversationPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' })
   }, [messages?.length])
+
+  const { mutate: markRead } = useMarkConversationRead()
+  const messageCount = messages?.length
+  useEffect(() => {
+    if (!conversationId || messageCount === undefined) return
+    const markIfVisible = () => document.visibilityState === 'visible' && markRead(conversationId)
+    markIfVisible()
+    document.addEventListener('visibilitychange', markIfVisible)
+    return () => document.removeEventListener('visibilitychange', markIfVisible)
+  }, [conversationId, messageCount, markRead])
+
+  const otherIsNotFriend =
+    conversation?.type === 'direct' && !!friends && others.some((id) => !friends.some((f) => f.id === id))
 
   const typingNames = [...typingUsers].map((id) => byId.get(id)?.displayName).filter(Boolean)
 
@@ -84,7 +100,13 @@ export function ConversationPage() {
         <p className="px-4 pb-1 text-xs text-gray-400">{typingNames.join(', ')} typing…</p>
       )}
 
-      <Composer conversationId={conversationId!} onSend={(content) => sendMessage.mutate({ content })} />
+      {otherIsNotFriend ? (
+        <p className="border-t border-border bg-surface p-4 text-center text-sm text-gray-500">
+          You're no longer friends, so you can't send messages here.
+        </p>
+      ) : (
+        <Composer conversationId={conversationId!} onSend={(content) => sendMessage.mutate({ content })} />
+      )}
     </div>
   )
 }

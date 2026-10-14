@@ -7,4 +7,5 @@ export const SHARED_PACKAGE_NAME = "@plan-it/shared";
 export * from "./schemas/plans.js";
 export * from "./schemas/conversations.js";
 export * from "./schemas/activity.js";
+export * from "./schemas/friends.js";
 export * from "./socketEvents.js";

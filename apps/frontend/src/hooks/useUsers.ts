@@ -23,12 +23,3 @@ export function useUsers(ids: string[]) {
 
   return { ...query, byId }
 }
-
-export function useSearchUsers(query: string) {
-  const api = useApi()
-  return useQuery({
-    queryKey: ['users', 'search', query],
-    queryFn: () => api.searchUsers(query),
-    enabled: query.trim().length > 0,
-  })
-}

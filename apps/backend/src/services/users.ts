@@ -1,4 +1,4 @@
-import { and, eq, inArray, ilike, ne } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "../db/client.js";
 import { users } from "../db/schema.js";
 
@@ -17,17 +17,5 @@ export async function getUserById(id: string) {
 export async function listUsersByIds(ids: string[]) {
   if (ids.length === 0) return [];
   const rows = await db.select().from(users).where(inArray(users.id, [...new Set(ids)]));
-  return rows.map(toPublicProfile);
-}
-
-// Name search so the client can find people to start a chat with or invite
-// to a plan — there's no "contacts" concept in the MVP data model, so this
-// is the only discovery mechanism. Excludes the requester and caps results.
-export async function searchUsers(query: string, excludeUserId: string, limit = 20) {
-  const rows = await db
-    .select()
-    .from(users)
-    .where(and(ilike(users.displayName, `%${query}%`), ne(users.id, excludeUserId)))
-    .limit(limit);
   return rows.map(toPublicProfile);
 }

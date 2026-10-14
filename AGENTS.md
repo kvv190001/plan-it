@@ -22,7 +22,7 @@ Run from the repo root (npm workspaces):
 The original backend (per `docs/04-api-design.md`) had no way to resolve a user's display name/avatar outside of `/activity` (which joins `users`), and no way to discover other users to chat with or invite. Added:
 
 - `GET /users?ids=a,b,c` — batched public-profile lookup (id, displayName, avatarUrl), used to hydrate chat participants/plan participants/comment authors.
-- `GET /users?q=name` — display-name search, excluding the requester. This is the only "find a person" mechanism in the MVP (no contacts/friends list in the data model).
+- Friends: people are found only via shareable friend codes (`users.friend_code`) and friend requests — there is no name search. Chats and plans can only be created with accepted friends (`assertFriends` in `services/friends.ts`). See `docs/07-friends.md`; run `npm run db:migrate --workspace=@plan-it/backend` for the `0001_friends` migration.
 - `GET /users/:id` — single lookup (matches `docs/04-api-design.md`, previously undocumented-but-unimplemented).
 - `listConversations` now returns `participantIds` and a `lastMessage` preview per conversation (batched, no N+1) so the chat list can render without extra round trips.
 

@@ -10,17 +10,10 @@ usersRouter.use(requireCurrentUser);
 
 // GET /users?ids=id1,id2,...  batched public-profile lookup, used to hydrate
 // participant/author names+avatars in chat, plan, and comment views.
-// GET /users?q=name                 search by display name, used to find
-// people to start a chat with or invite to a plan (excludes the requester).
+// People are discovered through friend codes (see routes/friends.ts), not search.
 usersRouter.get(
   "/users",
   asyncHandler(async (req, res) => {
-    if (typeof req.query.q === "string" && req.query.q.trim().length > 0) {
-      const results = await usersService.searchUsers(req.query.q.trim(), req.currentUser!.id);
-      res.json({ users: results });
-      return;
-    }
-
     const idsParam = typeof req.query.ids === "string" ? req.query.ids : "";
     const ids = idsParam
       .split(",")

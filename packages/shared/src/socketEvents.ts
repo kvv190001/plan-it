@@ -17,6 +17,9 @@ export const SOCKET_EVENTS = {
   PLAN_STATUS_CHANGED: "plan:status_changed",
   PLAN_MILESTONE_COMPLETED: "plan:milestone_completed",
   PLAN_COMMENT_POSTED: "plan:comment_posted",
+  FRIEND_REQUEST_RECEIVED: "friend:request_received",
+  FRIEND_REQUEST_ACCEPTED: "friend:request_accepted",
+  FRIEND_REMOVED: "friend:removed",
 } as const;
 
 // client -> server
@@ -70,4 +73,8 @@ export interface PlanMilestoneCompletedPayload {
 export interface PlanCommentPostedPayload {
   planId: string;
   comment: unknown;
+}
+
+export interface FriendEventPayload {
+  userId: string;
 }
