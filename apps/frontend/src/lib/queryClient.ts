@@ -38,9 +38,16 @@ export const persister = createAsyncStoragePersister({
 })
 
 export const getCachedUserId = () => get<string>(USER_KEY)
-export const setCachedUserId = (id: string) => set(USER_KEY, id)
+export const setCachedUserId = (id: string) => {
+  localStorage.setItem(USER_KEY, id)
+  return set(USER_KEY, id)
+}
+
+// Sync flag so RequireAuth can tell during render that this device has a prior session.
+export const hasCachedSession = () => !!localStorage.getItem(USER_KEY)
 
 export async function clearPersistedCache() {
+  localStorage.removeItem(USER_KEY)
   queryClient.clear()
   await Promise.all([del(CACHE_KEY), del(USER_KEY)])
 }
