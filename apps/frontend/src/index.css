@@ -55,6 +55,16 @@ body {
   flex-direction: column;
 }
 
+/* iOS Safari auto-zooms into form fields with a font size under 16px.
+   Unlayered, so it wins over Tailwind's layered text-sm utilities. */
+@media (hover: none) and (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 /* Desktop browsers render a reserved-space scrollbar inside the scrollable
    content column, which looks out of place for a phone-width app shell.
    Scrolling still works — only the (redundant, since the app is scrolled by
