@@ -16,6 +16,7 @@ import { HttpError } from "../lib/httpError.js";
 import { requireCurrentUser } from "../middleware/currentUser.js";
 import * as plansService from "../services/plans.js";
 import { getIO } from "../socket/io.js";
+import { sendPushToUsers } from "../services/push.js";
 import { emitToUsers } from "../socket/planEvents.js";
 
 export const plansRouter = Router();
@@ -43,6 +44,12 @@ plansRouter.post(
 
     const inviteeIds = plan.participants.filter((p) => p.role !== "owner").map((p) => p.userId);
     emitToUsers(getIO(), inviteeIds, SOCKET_EVENTS.PLAN_INVITED, { plan });
+    void sendPushToUsers(inviteeIds, {
+      title: "New plan invite",
+      body: `${req.currentUser!.displayName} invited you to "${plan.title}"`,
+      url: `/plans/${plan.id}`,
+      tag: `plan:${plan.id}`,
+    });
 
     res.status(201).json({ plan });
   }),
@@ -101,6 +108,12 @@ plansRouter.post(
     const plan = await plansService.inviteParticipant(req.currentUser!.id, req.params.id, parsed.data.userId);
 
     emitToUsers(getIO(), [parsed.data.userId], SOCKET_EVENTS.PLAN_INVITED, { plan });
+    void sendPushToUsers([parsed.data.userId], {
+      title: "New plan invite",
+      body: `${req.currentUser!.displayName} invited you to "${plan.title}"`,
+      url: `/plans/${plan.id}`,
+      tag: `plan:${plan.id}`,
+    });
 
     res.status(201).json({ plan });
   }),

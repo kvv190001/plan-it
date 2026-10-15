@@ -1,6 +1,7 @@
 import { ClerkProvider } from '@clerk/react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from 'react-router-dom'
+import { PwaStatus } from '@/components/PwaStatus'
 import { queryClient } from '@/lib/queryClient'
 import { RealtimeSync } from '@/lib/realtimeSync'
 import { SocketProvider } from '@/lib/socket'
@@ -14,6 +15,7 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <SocketProvider>
           <RealtimeSync />
+          <PwaStatus />
           <RouterProvider router={router} />
         </SocketProvider>
       </QueryClientProvider>

@@ -17,6 +17,7 @@ import { meRouter } from "./routes/me.js";
 import { milestonesRouter } from "./routes/milestones.js";
 import { notificationsRouter } from "./routes/notifications.js";
 import { plansRouter } from "./routes/plans.js";
+import { pushRouter } from "./routes/push.js";
 import { usersRouter } from "./routes/users.js";
 import { webhooksRouter } from "./routes/webhooks.js";
 import { createSocketServer } from "./socket/index.js";
@@ -29,7 +30,10 @@ const port = process.env.PORT ? Number(process.env.PORT) : 4000;
 // client sends an Authorization header on every request, so the browser
 // preflights every call. Without this, all fetches fail client-side with a
 // CORS error even though the server responds fine.
-app.use(cors({ origin: process.env.FRONTEND_URL ?? "http://localhost:5173" }));
+// Allows any origin by default. Auth is a Bearer token (no cookies), so this
+// isn't a CSRF risk. Set FRONTEND_URL (comma-separated list) to restrict it.
+const allowedOrigins = process.env.FRONTEND_URL?.split(",").map((origin) => origin.trim());
+app.use(cors({ origin: allowedOrigins ?? true }));
 
 // Webhook route needs the raw body for Svix signature verification, so it's
 // mounted before express.json() and excluded from clerkMiddleware() (the
@@ -53,6 +57,7 @@ app.use(commentsRouter);
 app.use(conversationsRouter);
 app.use(activityRouter);
 app.use(notificationsRouter);
+app.use(pushRouter);
 
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof HttpError) {

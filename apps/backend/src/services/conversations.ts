@@ -2,9 +2,10 @@ import type { createConversationSchema, listMessagesQuerySchema, sendMessageSche
 import { and, count, desc, eq, gt, inArray, lt, ne } from "drizzle-orm";
 import type { z } from "zod";
 import { db } from "../db/client.js";
-import { conversationParticipants, conversations, messages } from "../db/schema.js";
+import { conversationParticipants, conversations, messages, users } from "../db/schema.js";
 import { HttpError } from "../lib/httpError.js";
 import { areFriends, assertFriends } from "./friends.js";
+import { sendPushToUsers } from "./push.js";
 
 export async function createConversation(
   currentUserId: string,
@@ -207,5 +208,32 @@ export async function sendMessage(
     })
     .returning();
 
+  void notifyMessageRecipients(currentUserId, conversation?.title ?? null, message);
   return message;
+}
+
+async function notifyMessageRecipients(senderId: string, groupTitle: string | null, message: typeof messages.$inferSelect) {
+  const [recipients, [sender]] = await Promise.all([
+    db
+      .select({ userId: conversationParticipants.userId })
+      .from(conversationParticipants)
+      .where(
+        and(
+          eq(conversationParticipants.conversationId, message.conversationId),
+          ne(conversationParticipants.userId, senderId),
+        ),
+      ),
+    db.select({ displayName: users.displayName }).from(users).where(eq(users.id, senderId)),
+  ]);
+  const name = sender?.displayName ?? "Someone";
+  const text = message.content.length > 140 ? `${message.content.slice(0, 137)}…` : message.content;
+  await sendPushToUsers(
+    recipients.map((r) => r.userId),
+    {
+      title: groupTitle ?? name,
+      body: groupTitle ? `${name}: ${text}` : text,
+      url: `/chats/${message.conversationId}`,
+      tag: `chat:${message.conversationId}`,
+    },
+  );
 }

@@ -39,6 +39,21 @@ export const users = pgTable("users", {
   activitySeenAt: timestamp("activity_seen_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull().unique(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("push_subscriptions_user_idx").on(table.userId)],
+);
+
 // ---------------------------------------------------------------------------
 // Friends (see docs/07-friends.md)
 // ---------------------------------------------------------------------------

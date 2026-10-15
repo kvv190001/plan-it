@@ -8,4 +8,5 @@ export * from "./schemas/plans.js";
 export * from "./schemas/conversations.js";
 export * from "./schemas/activity.js";
 export * from "./schemas/friends.js";
+export * from "./schemas/push.js";
 export * from "./socketEvents.js";

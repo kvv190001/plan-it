@@ -13,11 +13,14 @@ export function AppShell() {
   const [createOpen, setCreateOpen] = useState(false)
   const isTopLevel = useMatch('/:tab')
   const { data: summary } = useNotificationSummary()
-  const hasNotifications = !!summary && Object.values(summary).some((n) => n > 0)
+  const total = summary ? Object.values(summary).reduce((sum, n) => sum + n, 0) : 0
 
   useEffect(() => {
-    document.title = hasNotifications ? '• Plan It' : 'Plan It'
-  }, [hasNotifications])
+    document.title = total > 0 ? '• Plan It' : 'Plan It'
+    if (!summary) return
+    if (total > 0) void navigator.setAppBadge?.(total)
+    else void navigator.clearAppBadge?.()
+  }, [summary, total])
 
   return (
     <div className="flex min-h-dvh flex-1 flex-col">

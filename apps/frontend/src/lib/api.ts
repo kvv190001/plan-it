@@ -92,6 +92,12 @@ export function createApiClient(getToken: GetToken) {
       markRead: (conversationId: string) => post<void>(`/conversations/${conversationId}/read`),
     },
 
+    push: {
+      publicKey: () => get<{ publicKey: string | null }>('/push/public-key').then((r) => r.publicKey),
+      subscribe: (subscription: PushSubscriptionJSON) => post<void>('/push/subscribe', subscription),
+      unsubscribe: (endpoint: string) => post<void>('/push/unsubscribe', { endpoint }),
+    },
+
     notifications: {
       summary: () => get<{ summary: NotificationSummary }>('/notifications/summary').then((r) => r.summary),
     },

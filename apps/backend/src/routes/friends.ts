@@ -4,6 +4,7 @@ import { asyncHandler } from "../lib/asyncHandler.js";
 import { HttpError } from "../lib/httpError.js";
 import { requireCurrentUser } from "../middleware/currentUser.js";
 import * as friendsService from "../services/friends.js";
+import { sendPushToUsers } from "../services/push.js";
 import { getIO } from "../socket/io.js";
 import { emitToUsers } from "../socket/planEvents.js";
 
@@ -53,6 +54,15 @@ friendsRouter.post(
       result.status === "accepted" ? SOCKET_EVENTS.FRIEND_REQUEST_ACCEPTED : SOCKET_EVENTS.FRIEND_REQUEST_RECEIVED,
       { userId: me },
     );
+    void sendPushToUsers([result.otherUserId], {
+      title: result.status === "accepted" ? "Friend request accepted" : "New friend request",
+      body:
+        result.status === "accepted"
+          ? `${req.currentUser!.displayName} accepted your friend request`
+          : `${req.currentUser!.displayName} sent you a friend request`,
+      url: "/friends",
+      tag: `friend:${me}`,
+    });
     res.status(201).json({ status: result.status });
   }),
 );
@@ -63,6 +73,12 @@ friendsRouter.post(
     const me = req.currentUser!.id;
     const requesterId = await friendsService.acceptRequest(me, req.params.id);
     emitToUsers(getIO(), [requesterId], SOCKET_EVENTS.FRIEND_REQUEST_ACCEPTED, { userId: me });
+    void sendPushToUsers([requesterId], {
+      title: "Friend request accepted",
+      body: `${req.currentUser!.displayName} accepted your friend request`,
+      url: "/friends",
+      tag: `friend:${me}`,
+    });
     res.json({ status: "accepted" });
   }),
 );
